@@ -1,13 +1,35 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from urllib.parse import urlencode
 from django.db.models import Q, Case, When, Value, IntegerField
 from .models import Project, Module, Task, TaskImage, TaskComment
 from .forms import ProjectForm, ModuleForm, TaskForm
+
+_FILTER_SESSION_KEY = 'task_list_filters'
+_FILTER_SCALAR_KEYS = ['module', 'status', 'priority', 'assign', 'pm', 'group_by', 'sort_by']
+
+
+def _save_filters(request):
+    saved = {'project': request.GET.getlist('project')}
+    for key in _FILTER_SCALAR_KEYS:
+        val = request.GET.get(key, '')
+        if val:
+            saved[key] = val
+    request.session[_FILTER_SESSION_KEY] = saved
+
+
+def _build_filter_qs(saved):
+    parts = [('project', pid) for pid in saved.get('project', [])]
+    for key in _FILTER_SCALAR_KEYS:
+        if saved.get(key):
+            parts.append((key, saved[key]))
+    return urlencode(parts) if parts else ''
 
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
@@ -127,6 +149,24 @@ def _group_tasks(qs, group_by, sort_by='order'):
 
 @login_required
 def task_list(request):
+    # 使用者點「清除篩選」— 保留 group_by/sort_by，清除其餘篩選
+    if 'fresh' in request.GET:
+        preserved = {k: request.GET[k] for k in ('group_by', 'sort_by') if request.GET.get(k)}
+        request.session[_FILTER_SESSION_KEY] = preserved
+        redirect_url = reverse('tasks:task_list')
+        if preserved:
+            redirect_url += '?' + urlencode(preserved.items())
+        return redirect(redirect_url)
+
+    if request.GET:
+        _save_filters(request)
+    else:
+        saved = request.session.get(_FILTER_SESSION_KEY)
+        if saved:
+            qs_str = _build_filter_qs(saved)
+            if qs_str:
+                return redirect(f"{reverse('tasks:task_list')}?{qs_str}")
+
     qs = Task.objects.select_related('project', 'module', 'assign', 'support', 'pm')
     qs = _apply_filters(qs, request)
 

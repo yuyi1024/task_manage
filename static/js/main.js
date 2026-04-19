@@ -328,8 +328,13 @@ function applyFilter(key, value) {
 }
 
 function clearFilters() {
-  const url = new URL(window.location);
-  ['project', 'module', 'status', 'priority', 'assign', 'pm'].forEach(k => url.searchParams.delete(k));
+  const cur = new URL(window.location);
+  const url = new URL(window.location.origin + window.location.pathname);
+  url.searchParams.set('fresh', '1');
+  ['group_by', 'sort_by'].forEach(k => {
+    const v = cur.searchParams.get(k);
+    if (v) url.searchParams.set(k, v);
+  });
   window.location = url;
 }
 
