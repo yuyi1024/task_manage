@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value, IntegerField
 from .models import Project, Module, Task, TaskImage, TaskComment
 from .forms import ProjectForm, ModuleForm, TaskForm
 
@@ -18,7 +18,7 @@ def _get_users():
 
 def _get_filter_context(request):
     return {
-        'filter_project': request.GET.get('project', ''),
+        'filter_projects': request.GET.getlist('project'),
         'filter_module': request.GET.get('module', ''),
         'filter_status': request.GET.get('status', ''),
         'filter_priority': request.GET.get('priority', ''),
@@ -29,7 +29,7 @@ def _get_filter_context(request):
 
 
 def _apply_filters(qs, request):
-    p = request.GET.get('project')
+    p = request.GET.getlist('project')
     m = request.GET.get('module')
     s = request.GET.get('status')
     pr = request.GET.get('priority')
@@ -37,7 +37,7 @@ def _apply_filters(qs, request):
     pm = request.GET.get('pm')
 
     if p:
-        qs = qs.filter(project_id=p)
+        qs = qs.filter(project_id__in=p)
     if m:
         qs = qs.filter(module_id=m)
     if s:
@@ -60,15 +60,29 @@ def _group_tasks(qs, group_by, sort_by='order'):
         'pm': ('pm', None),
     }
 
+    PRIORITY_RANK = Case(
+        When(priority='high', then=Value(1)),
+        When(priority='medium', then=Value(2)),
+        When(priority='low', then=Value(3)),
+        default=Value(4),
+        output_field=IntegerField(),
+    )
     sort_map = {
-        'priority_desc': ['-priority', 'order'],
-        'priority_asc': ['priority', 'order'],
+        'priority_desc': None,
+        'priority_asc': None,
         'start_date': ['start_date', 'order'],
         'end_date': ['end_date', 'order'],
         'created_at': ['-created_at'],
         'order': ['order', '-created_at'],
     }
-    order_fields = sort_map.get(sort_by, ['order', '-created_at'])
+    if sort_by == 'priority_desc':
+        qs = qs.annotate(_prank=PRIORITY_RANK)
+        order_fields = ['_prank', 'order']
+    elif sort_by == 'priority_asc':
+        qs = qs.annotate(_prank=PRIORITY_RANK)
+        order_fields = ['-_prank', 'order']
+    else:
+        order_fields = sort_map.get(sort_by, ['order', '-created_at'])
 
     groups = []
     if group_by == 'status':
@@ -170,6 +184,7 @@ def task_create(request):
         task.project_id = int(project_id)
         task.save()
 
+    task = Task.objects.select_related('project', 'module', 'assign', 'support', 'pm').get(pk=task.pk)
     users = _get_users()
     context = {
         'task': task,
@@ -403,7 +418,11 @@ def project_delete(request, pk):
 def module_create(request):
     form = ModuleForm(request.POST)
     if form.is_valid():
-        form.save()
+        module = form.save()
+        if request.headers.get('HX-Request'):
+            modules = Module.objects.filter(project=module.project)
+            return render(request, 'tasks/partials/module_list_items.html',
+                          {'modules': modules, 'project': module.project})
     return redirect('tasks:project_list')
 
 
@@ -413,6 +432,25 @@ def module_delete(request, pk):
     module = get_object_or_404(Module, pk=pk)
     module.delete()
     return HttpResponse(status=200)
+
+
+# ─── Task Row Partial ────────────────────────────────────────────────────────
+
+@login_required
+def task_row_partial(request, pk):
+    task = get_object_or_404(
+        Task.objects.select_related('project', 'module', 'assign', 'support', 'pm'),
+        pk=pk
+    )
+    context = {
+        'task': task,
+        'users': _get_users(),
+        'projects': Project.objects.all(),
+        'modules': Module.objects.select_related('project').all(),
+        'status_choices': Task.STATUS_CHOICES,
+        'priority_choices': Task.PRIORITY_CHOICES,
+    }
+    return render(request, 'tasks/partials/task_row.html', context)
 
 
 # ─── Users API ───────────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@ class Project(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     color = models.CharField(max_length=7, default='#6366f1')
+    icon = models.CharField(max_length=50, default='folder', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name='created_projects'
@@ -36,8 +37,8 @@ class Task(models.Model):
         ('not_started', 'Not Started'),
         ('in_progress', 'In Progress'),
         ('unconfirm', 'Unconfirm'),
-        ('done', 'Done'),
         ('pause', 'Pause'),
+        ('done', 'Done'),
     ]
     PRIORITY_CHOICES = [
         ('high', 'High'),

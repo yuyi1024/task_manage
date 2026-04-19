@@ -16,10 +16,12 @@
   {% for project in projects %}
   <div class="project-card" id="project-card-{{ project.id }}">
     <div class="project-card-header">
-      <div class="project-color-dot" style="background:{{ project.color }}"></div>
+      <div class="project-icon-badge" style="color:{{ project.color }}">
+        <i data-lucide="{{ project.icon|default:'folder' }}"></i>
+      </div>
       <h3 class="project-name">{{ project.name }}</h3>
       <div class="project-actions">
-        <button class="btn-icon" onclick="openEditProject({{ project.id }}, '{{ project.name|escapejs }}', '{{ project.color }}', '{{ project.description|escapejs }}')" title="編輯">
+        <button class="btn-icon" onclick="openEditProject({{ project.id }}, '{{ project.name|escapejs }}', '{{ project.color }}', '{{ project.description|escapejs }}', '{{ project.icon|default:'folder' }}')" title="編輯">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
         <button class="btn-icon btn-danger"
@@ -108,6 +110,18 @@
         </div>
       </div>
       <div class="form-group">
+        <label class="form-label">Icon</label>
+        <div class="icon-picker-wrap" id="new-icon-wrap">
+          <button type="button" class="icon-picker-trigger" onclick="toggleIconPicker('new')">
+            <span class="icon-preview" id="new-icon-preview"></span>
+            <span class="icon-picker-name" id="new-icon-label">folder</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <input type="hidden" name="icon" id="new-project-icon" value="folder" />
+          <div class="icon-picker-grid" id="new-icon-grid" style="display:none"></div>
+        </div>
+      </div>
+      <div class="form-group">
         <label class="form-label">描述</label>
         <textarea name="description" class="form-input" rows="2" placeholder="專案說明（選填）"></textarea>
       </div>
@@ -141,6 +155,18 @@
         </div>
       </div>
       <div class="form-group">
+        <label class="form-label">Icon</label>
+        <div class="icon-picker-wrap" id="edit-icon-wrap">
+          <button type="button" class="icon-picker-trigger" onclick="toggleIconPicker('edit')">
+            <span class="icon-preview" id="edit-icon-preview"></span>
+            <span class="icon-picker-name" id="edit-icon-label">folder</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <input type="hidden" name="icon" id="edit-project-icon" value="folder" />
+          <div class="icon-picker-grid" id="edit-icon-grid" style="display:none"></div>
+        </div>
+      </div>
+      <div class="form-group">
         <label class="form-label">描述</label>
         <textarea name="description" id="edit-project-desc" class="form-input" rows="2"></textarea>
       </div>
@@ -157,11 +183,15 @@ function showAddModule(projectId) {
   document.getElementById('add-module-form-' + projectId).style.display = 'block';
   document.querySelector('#add-module-form-' + projectId + ' input[name="name"]').focus();
 }
-function openEditProject(id, name, color, desc) {
+function openEditProject(id, name, color, desc, icon) {
   document.getElementById('edit-project-name').value = name;
   document.getElementById('edit-project-color').value = color;
   document.getElementById('edit-project-desc').value = desc;
   document.getElementById('edit-project-form').action = '/tasks/projects/' + id + '/update/';
+  const iconVal = icon || 'folder';
+  document.getElementById('edit-project-icon').value = iconVal;
+  document.getElementById('edit-icon-label').textContent = iconVal;
+  updateIconPreview('edit-icon-preview', iconVal);
   document.getElementById('edit-project-modal').style.display = 'flex';
 }
 </script>

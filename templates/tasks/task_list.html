@@ -30,12 +30,22 @@
 
       <div class="filter-group">
         <label class="filter-label">專案</label>
-        <select class="filter-select" onchange="applyFilter('project', this.value)">
-          <option value="">全部</option>
-          {% for p in projects %}
-          <option value="{{ p.id }}" {% if filter_project == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
-          {% endfor %}
-        </select>
+        <div class="filter-multiselect" x-data="projectFilter()" @click.outside="open=false">
+          <button class="filter-select filter-multiselect-btn" @click="open=!open" type="button">
+            <span x-text="label"></span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="filter-multiselect-dropdown" x-show="open" x-cloak>
+            <label class="filter-multiselect-option">
+              <input type="checkbox" @change="selectAll()" :checked="selected.length===0"> 全部
+            </label>
+            {% for p in projects %}
+            <label class="filter-multiselect-option">
+              <input type="checkbox" value="{{ p.id }}" @change="toggle('{{ p.id }}')" :checked="selected.includes('{{ p.id }}')"> {{ p.name }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
       </div>
 
       <div class="filter-group">
@@ -78,7 +88,7 @@
         </select>
       </div>
 
-      {% if filter_project or filter_status or filter_priority or filter_assign or filter_pm %}
+      {% if filter_projects or filter_status or filter_priority or filter_assign or filter_pm %}
       <button class="btn-clear-filter" onclick="clearFilters()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         清除篩選
@@ -229,6 +239,8 @@
 <script>
 // ── Group metadata for client-side move ────────────────
 window.TASK_GROUP_BY = '{{ group_by }}';
+window.PROJECT_ICONS = { {% for p in projects %}'{{ p.id }}': { icon: '{{ p.icon }}', color: '{{ p.color }}' },{% endfor %} };
+window.PROJECT_LABELS = { {% for p in projects %}'{{ p.id }}': '{{ p.name|escapejs }}',{% endfor %} };
 window.TASK_CURRENT_SORT = '{{ sort_by }}';
 window.TASK_GROUP_LABELS = {
   {% for group in groups %}'{{ group.key }}': '{{ group.label|escapejs }}',{% endfor %}
@@ -245,6 +257,39 @@ window.TASK_SORT_OPTIONS = [
 
 function taskManager() {
   return { init() {} };
+}
+
+function projectFilter() {
+  const params = new URLSearchParams(window.location.search);
+  const selected = params.getAll('project');
+  return {
+    open: false,
+    selected,
+    get label() {
+      if (this.selected.length === 0) return '全部';
+      if (this.selected.length === 1) return window.PROJECT_LABELS[this.selected[0]] || this.selected[0];
+      return `${this.selected.length} 個專案`;
+    },
+    toggle(id) {
+      const s = String(id);
+      if (this.selected.includes(s)) {
+        this.selected = this.selected.filter(x => x !== s);
+      } else {
+        this.selected.push(s);
+      }
+      this._apply();
+    },
+    selectAll() {
+      this.selected = [];
+      this._apply();
+    },
+    _apply() {
+      const url = new URL(window.location);
+      url.searchParams.delete('project');
+      this.selected.forEach(id => url.searchParams.append('project', id));
+      window.location = url;
+    },
+  };
 }
 </script>
 {% endblock %}

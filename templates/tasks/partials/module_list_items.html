@@ -1,0 +1,14 @@
+{% for module in modules %}
+<div class="module-item" id="module-item-{{ module.id }}">
+  <span class="module-name">{{ module.name }}</span>
+  <button class="btn-icon btn-danger btn-sm"
+          hx-post="{% url 'tasks:module_delete' module.id %}"
+          hx-target="#module-item-{{ module.id }}"
+          hx-swap="outerHTML"
+          hx-confirm="確定刪除模組「{{ module.name }}」嗎？">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>
+{% empty %}
+<div class="no-modules">尚無模組</div>
+{% endfor %}

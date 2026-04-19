@@ -97,7 +97,12 @@
 
 {% block extra_js %}{% endblock %}
 
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script src="{% static 'js/editor.js' %}"></script>
 <script src="{% static 'js/main.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
+  document.addEventListener('htmx:afterSettle', () => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
+</script>
 </body>
 </html>

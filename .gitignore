@@ -24,9 +24,11 @@ media/
 !.env.example
 
 # ── Static files (collected) ─────────────────────
-# Uncomment if you run collectstatic into a separate folder
-# staticfiles/
-# collected_static/
+staticfiles/
+collected_static/
+
+# ── Data exports ─────────────────────────────────
+*.csv
 
 # ── IDE / Editor ─────────────────────────────────
 .idea/

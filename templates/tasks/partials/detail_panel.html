@@ -33,12 +33,14 @@
   <!-- Fields -->
   <div class="panel-fields">
 
+    <!-- Row 1: 狀態 / 優先度 (2 欄，第3欄空) -->
     <div class="panel-row">
       <div class="panel-field">
         <label class="panel-field-label">狀態</label>
-        <select class="panel-select" name="status"
+        <select class="panel-select status-select status-{{ task.status }}" name="status"
                 hx-post="{% url 'tasks:task_update' task.id %}"
-                hx-trigger="change" hx-swap="none">
+                hx-trigger="change" hx-swap="none"
+                onchange="this.className='panel-select status-select status-'+this.value">
           {% for val, label in status_choices %}
           <option value="{{ val }}" {% if task.status == val %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
@@ -46,19 +48,25 @@
       </div>
       <div class="panel-field">
         <label class="panel-field-label">優先度</label>
-        <select class="panel-select" name="priority"
+        <select class="panel-select priority-select priority-{{ task.priority }}" name="priority"
                 hx-post="{% url 'tasks:task_update' task.id %}"
-                hx-trigger="change" hx-swap="none">
+                hx-trigger="change" hx-swap="none"
+                onchange="this.className='panel-select priority-select priority-'+this.value">
           {% for val, label in priority_choices %}
           <option value="{{ val }}" {% if task.priority == val %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
       </div>
+      <div class="panel-field panel-field-empty"></div>
     </div>
 
+    <!-- Row 2: 專案 / 模組 (2 欄，第3欄空) -->
     <div class="panel-row">
       <div class="panel-field">
         <label class="panel-field-label">專案</label>
+        <span class="proj-icon-mini" id="panel-proj-icon-{{ task.id }}">
+          {% if task.project and task.project.icon %}<i data-lucide="{{ task.project.icon }}"></i>{% endif %}
+        </span>
         <select class="panel-select" name="project" id="panel-project-{{ task.id }}"
                 hx-post="{% url 'tasks:task_update' task.id %}"
                 hx-trigger="change" hx-swap="none"
@@ -80,8 +88,10 @@
           {% endfor %}
         </select>
       </div>
+      <div class="panel-field panel-field-empty"></div>
     </div>
 
+    <!-- Row 3: Assign / Support / PM (3 欄) -->
     <div class="panel-row">
       <div class="panel-field">
         <label class="panel-field-label">Assign</label>
@@ -118,6 +128,7 @@
       </div>
     </div>
 
+    <!-- Row 4: 開始日期 / 結束日期 / 預估工時 (3 欄) -->
     <div class="panel-row">
       <div class="panel-field">
         <label class="panel-field-label">開始日期</label>
@@ -145,13 +156,6 @@
 
   </div>
 
-  <!-- Rich Text Editor -->
-  <div class="panel-section-title">詳細說明</div>
-  <div class="panel-editor-area">
-    <div id="tiptap-editor-{{ task.id }}"
-         data-content="{{ task.description }}"></div>
-  </div>
-
   <!-- Comments -->
   <div class="panel-section-title">留言</div>
   <div class="panel-comments">
@@ -166,7 +170,7 @@
           hx-post="{% url 'tasks:task_comment_create' task.id %}"
           hx-target="#comment-list-{{ task.id }}"
           hx-swap="beforeend"
-          hx-on::after-request="if(event.detail.successful){ this.querySelector('textarea').value=''; this.querySelector('.comment-empty') && this.querySelector('.comment-empty').remove(); }">
+          hx-on::after-request="if(event.detail.successful){ this.querySelector('textarea').value=''; const empty=this.closest('.panel-comments').querySelector('.comment-empty'); if(empty) empty.remove(); }">
       {% csrf_token %}
       <textarea class="comment-input" name="content" placeholder="新增留言..." rows="2"></textarea>
       <div class="comment-form-footer">
@@ -174,6 +178,13 @@
         <button type="submit" class="btn btn-primary btn-sm">送出</button>
       </div>
     </form>
+  </div>
+
+  <!-- Rich Text Editor -->
+  <div class="panel-section-title">詳細說明</div>
+  <div class="panel-editor-area">
+    <div id="tiptap-editor-{{ task.id }}"
+         data-content="{{ task.description }}"></div>
   </div>
 
   <!-- Footer -->

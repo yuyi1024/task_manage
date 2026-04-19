@@ -18,6 +18,9 @@ urlpatterns = [
     # Detail panel (slide-over)
     path('<int:pk>/detail/', views.task_detail, name='task_detail'),
 
+    # Task row partial (for refresh after panel save)
+    path('<int:pk>/row/', views.task_row_partial, name='task_row_partial'),
+
     # Dynamic module options
     path('module-options/', views.module_options, name='module_options'),
 

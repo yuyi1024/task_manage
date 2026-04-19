@@ -6,7 +6,7 @@ from .models import Project, Module, Task
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = ['name', 'description', 'color']
+        fields = ['name', 'description', 'color', 'icon']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': '專案名稱'}),
             'description': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': '專案描述（選填）'}),
@@ -17,11 +17,10 @@ class ProjectForm(forms.ModelForm):
 class ModuleForm(forms.ModelForm):
     class Meta:
         model = Module
-        fields = ['name', 'project', 'order']
+        fields = ['name', 'project']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': '模組名稱'}),
             'project': forms.Select(attrs={'class': 'form-select'}),
-            'order': forms.NumberInput(attrs={'class': 'form-input'}),
         }
 
 
