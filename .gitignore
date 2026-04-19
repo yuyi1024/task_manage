@@ -1,0 +1,55 @@
+# ── Python ──────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# ── Virtual environments ─────────────────────────
+.venv/
+venv/
+env/
+.env/
+
+# ── Django ──────────────────────────────────────
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# ── Environment variables ────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Static files (collected) ─────────────────────
+# Uncomment if you run collectstatic into a separate folder
+# staticfiles/
+# collected_static/
+
+# ── IDE / Editor ─────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── OS ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Testing & coverage ───────────────────────────
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# ── Build / packaging ────────────────────────────
+dist/
+build/
+*.egg-info/
+
+# ── Claude Code ──────────────────────────────────
+.claude/

@@ -1,0 +1,158 @@
+{% load static %}
+<div class="task-row" id="task-row-{{ task.id }}" data-task-id="{{ task.id }}">
+
+  <!-- Task Title (click to open detail panel) -->
+  <div class="col-task">
+    <button class="task-title-btn" onclick="openDetailPanel({{ task.id }})"
+            title="{{ task.title }}">
+      <span class="task-title-text">{{ task.title }}</span>
+    </button>
+  </div>
+
+  <!-- Project -->
+  <div class="col-project">
+    <select class="inline-select"
+            name="project"
+            hx-post="{% url 'tasks:task_update' task.id %}"
+            hx-trigger="change"
+            hx-swap="none"
+            hx-include="[name='project']"
+            onchange="handleProjectChange(this, {{ task.id }})">
+      <option value="">—</option>
+      {% for p in projects %}
+      <option value="{{ p.id }}" {% if task.project_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Module -->
+  <div class="col-module">
+    <select class="inline-select" name="module" id="module-select-{{ task.id }}"
+            hx-post="{% url 'tasks:task_update' task.id %}"
+            hx-trigger="change"
+            hx-swap="none">
+      <option value="">—</option>
+      {% for m in modules %}
+      {% if task.project_id == m.project_id %}
+      <option value="{{ m.id }}" {% if task.module_id == m.id %}selected{% endif %}>{{ m.name }}</option>
+      {% endif %}
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Status -->
+  <div class="col-status">
+    <select class="inline-select status-select status-{{ task.status }}"
+            name="status"
+            hx-post="{% url 'tasks:task_update' task.id %}"
+            hx-trigger="change"
+            hx-swap="none"
+            onchange="this.className='inline-select status-select status-'+this.value">
+      {% for val, label in status_choices %}
+      <option value="{{ val }}" {% if task.status == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Priority -->
+  <div class="col-priority">
+    <select class="inline-select priority-select priority-{{ task.priority }}"
+            name="priority"
+            hx-post="{% url 'tasks:task_update' task.id %}"
+            hx-trigger="change"
+            hx-swap="none"
+            onchange="this.className='inline-select priority-select priority-'+this.value">
+      {% for val, label in priority_choices %}
+      <option value="{{ val }}" {% if task.priority == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Assign -->
+  <div class="col-assign">
+    <select class="inline-select"
+            name="assign"
+            hx-post="{% url 'tasks:task_update' task.id %}"
+            hx-trigger="change"
+            hx-swap="none">
+      <option value="">—</option>
+      {% for u in users %}
+      <option value="{{ u.id }}" {% if task.assign_id == u.id %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Support -->
+  <div class="col-support">
+    <select class="inline-select"
+            name="support"
+            hx-post="{% url 'tasks:task_update' task.id %}"
+            hx-trigger="change"
+            hx-swap="none">
+      <option value="">—</option>
+      {% for u in users %}
+      <option value="{{ u.id }}" {% if task.support_id == u.id %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- PM -->
+  <div class="col-pm">
+    <select class="inline-select"
+            name="pm"
+            hx-post="{% url 'tasks:task_update' task.id %}"
+            hx-trigger="change"
+            hx-swap="none">
+      <option value="">—</option>
+      {% for u in users %}
+      <option value="{{ u.id }}" {% if task.pm_id == u.id %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Date Range -->
+  <div class="col-date">
+    <div class="date-range">
+      <input type="date" class="inline-date" name="start_date"
+             value="{{ task.start_date|date:'Y-m-d'|default:'' }}"
+             hx-post="{% url 'tasks:task_update' task.id %}"
+             hx-trigger="change"
+             hx-swap="none" />
+      <span class="date-sep">—</span>
+      <input type="date" class="inline-date" name="end_date"
+             value="{{ task.end_date|date:'Y-m-d'|default:'' }}"
+             hx-post="{% url 'tasks:task_update' task.id %}"
+             hx-trigger="change"
+             hx-swap="none" />
+    </div>
+  </div>
+
+  <!-- Estimated Hours (text field) -->
+  <div class="col-hours">
+    <input type="text" class="inline-input text-center" name="estimated_hours"
+           value="{{ task.estimated_hours }}"
+           placeholder="—"
+           hx-post="{% url 'tasks:task_update' task.id %}"
+           hx-trigger="input delay:800ms"
+           hx-swap="none" />
+  </div>
+
+  <!-- Actions -->
+  <div class="col-actions">
+    <button class="btn-icon" onclick="openDetailPanel({{ task.id }})" title="查看詳情">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </button>
+    <button class="btn-icon btn-clone" onclick="cloneTask({{ task.id }}, this)" title="複製任務">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </button>
+    <button class="btn-icon btn-danger"
+            hx-post="{% url 'tasks:task_delete' task.id %}"
+            hx-confirm="確定要刪除此任務嗎？"
+            hx-target="#task-row-{{ task.id }}"
+            hx-swap="outerHTML"
+            title="刪除">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </button>
+  </div>
+
+</div>

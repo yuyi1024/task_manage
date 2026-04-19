@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}任務管理 — TaskFlow{% endblock %}
+{% block page_title %}任務管理{% endblock %}
+
+{% block topbar_actions %}
+<button class="btn btn-primary" onclick="openNewTaskModal()">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  新增任務
+</button>
+{% endblock %}
+
+{% block content %}
+<div x-data="taskManager()" x-init="init()">
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label class="filter-label">分組</label>
+        <select class="filter-select" onchange="applyFilter('group_by', this.value)">
+          {% for val, label in group_by_options %}
+          <option value="{{ val }}" {% if group_by == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-divider"></div>
+
+      <div class="filter-group">
+        <label class="filter-label">專案</label>
+        <select class="filter-select" onchange="applyFilter('project', this.value)">
+          <option value="">全部</option>
+          {% for p in projects %}
+          <option value="{{ p.id }}" {% if filter_project == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">狀態</label>
+        <select class="filter-select" onchange="applyFilter('status', this.value)">
+          <option value="">全部</option>
+          {% for val, label in status_choices %}
+          <option value="{{ val }}" {% if filter_status == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">優先度</label>
+        <select class="filter-select" onchange="applyFilter('priority', this.value)">
+          <option value="">全部</option>
+          {% for val, label in priority_choices %}
+          <option value="{{ val }}" {% if filter_priority == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Assign</label>
+        <select class="filter-select" onchange="applyFilter('assign', this.value)">
+          <option value="">全部</option>
+          {% for u in users %}
+          <option value="{{ u.id }}" {% if filter_assign == u.id|stringformat:'s' %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">PM</label>
+        <select class="filter-select" onchange="applyFilter('pm', this.value)">
+          <option value="">全部</option>
+          {% for u in users %}
+          <option value="{{ u.id }}" {% if filter_pm == u.id|stringformat:'s' %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {% if filter_project or filter_status or filter_priority or filter_assign or filter_pm %}
+      <button class="btn-clear-filter" onclick="clearFilters()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        清除篩選
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Task Groups -->
+  <div class="task-groups" id="task-groups" data-group-by="{{ group_by }}">
+    {% for group in groups %}
+    <div class="task-group" id="group-{{ group.key }}"
+         data-was-empty="{% if group.count == 0 %}1{% else %}0{% endif %}"
+         {% if group_by == 'status' %}data-status="{{ group.key }}"{% endif %}
+         {% if group_by == 'priority' %}data-priority="{{ group.key }}"{% endif %}>
+      <div class="group-header">
+        <div class="group-header-left">
+          <button class="group-toggle {% if group.count == 0 %}collapsed{% endif %}" onclick="toggleGroup('{{ group.key }}')">
+            <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <span class="group-label">{{ group.label }}</span>
+          <span class="group-count">{{ group.count }}</span>
+        </div>
+        <div class="group-header-right">
+          <select class="sort-select" onchange="applyGroupSort('{{ group.key }}', this.value)">
+            {% for val, label in sort_options %}
+            <option value="{{ val }}" {% if sort_by == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn-add-task-group" onclick="openNewTaskModal('{{ group.key }}', '{{ group_by }}')" title="新增任務到此群組">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="group-body" id="group-body-{{ group.key }}"{% if group.count == 0 %} style="display:none"{% endif %}>
+        <!-- Table Header -->
+        <div class="task-table-header">
+          <div class="col-task">任務</div>
+          <div class="col-project">專案</div>
+          <div class="col-module">模組</div>
+          <div class="col-status">狀態</div>
+          <div class="col-priority">優先度</div>
+          <div class="col-assign">Assign</div>
+          <div class="col-support">Support</div>
+          <div class="col-pm">PM</div>
+          <div class="col-date">日期</div>
+          <div class="col-hours">工時</div>
+          <div class="col-actions"></div>
+        </div>
+
+        <!-- Task Rows -->
+        {% for task in group.tasks %}
+        {% include "tasks/partials/task_row.html" %}
+        {% empty %}
+        <div class="empty-group"><span>此群組暫無任務</span></div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- New Task Modal -->
+<div id="new-task-modal" class="modal-overlay" style="display:none" onclick="closeNewTaskModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">新增任務</h3>
+      <button class="modal-close" onclick="closeNewTaskModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form hx-post="{% url 'tasks:task_create' %}"
+          hx-target="#task-groups"
+          hx-swap="beforeend"
+          hx-on::after-request="onTaskCreated(event)"
+          class="modal-form">
+      {% csrf_token %}
+      <input type="hidden" name="group_context_value" id="new-task-group-val" />
+      <input type="hidden" name="group_context_field" id="new-task-group-field" />
+
+      <div class="form-group">
+        <label class="form-label">任務名稱 <span class="required">*</span></label>
+        <textarea name="title" class="form-input" rows="2" placeholder="輸入任務名稱..." required></textarea>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label">專案</label>
+          <select name="project" class="form-select" id="new-task-project"
+                  hx-get="{% url 'tasks:module_options' %}"
+                  hx-target="#new-task-module"
+                  hx-trigger="change"
+                  hx-include="[name='project']">
+            <option value="">— 選擇專案 —</option>
+            {% for p in projects %}
+            <option value="{{ p.id }}">{{ p.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">模組</label>
+          <select name="module" class="form-select" id="new-task-module">
+            <option value="">— 選擇模組 —</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="form-label">狀態</label>
+          <select name="status" class="form-select" id="new-task-status">
+            {% for val, label in status_choices %}
+            <option value="{{ val }}" {% if val == 'not_started' %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">優先度</label>
+          <select name="priority" class="form-select" id="new-task-priority">
+            {% for val, label in priority_choices %}
+            <option value="{{ val }}" {% if val == 'medium' %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assign</label>
+          <select name="assign" class="form-select">
+            <option value="">—</option>
+            {% for u in users %}
+            <option value="{{ u.id }}">{{ u.get_full_name|default:u.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeNewTaskModal()">取消</button>
+        <button type="submit" class="btn btn-primary">建立任務</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Group metadata for client-side move ────────────────
+window.TASK_GROUP_BY = '{{ group_by }}';
+window.TASK_CURRENT_SORT = '{{ sort_by }}';
+window.TASK_GROUP_LABELS = {
+  {% for group in groups %}'{{ group.key }}': '{{ group.label|escapejs }}',{% endfor %}
+  // status fallbacks
+  'pending': 'Pending', 'not_started': 'Not Started', 'in_progress': 'In Progress',
+  'unconfirm': 'Unconfirm', 'done': 'Done', 'pause': 'Pause',
+  // priority fallbacks
+  'high': '高', 'medium': '中', 'low': '低',
+  'none': '未指派',
+};
+window.TASK_SORT_OPTIONS = [
+  {% for val, label in sort_options %}{ value: '{{ val }}', label: '{{ label|escapejs }}' },{% endfor %}
+];
+
+function taskManager() {
+  return { init() {} };
+}
+</script>
+{% endblock %}

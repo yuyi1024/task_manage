@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登入 — TaskFlow</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+</head>
+<body class="auth-body">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <span class="logo-icon">⬡</span>
+        <span class="auth-brand">TaskFlow</span>
+      </div>
+      <h2 class="auth-title">歡迎回來</h2>
+      <p class="auth-subtitle">請登入以繼續</p>
+
+      {% if form.errors %}
+      <div class="alert alert-error">帳號或密碼錯誤，請重試。</div>
+      {% endif %}
+
+      <form method="post" class="auth-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">帳號</label>
+          <input type="text" name="username" autofocus autocomplete="username"
+                 class="form-input" placeholder="輸入帳號" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">密碼</label>
+          <input type="password" name="password" autocomplete="current-password"
+                 class="form-input" placeholder="輸入密碼" />
+        </div>
+        <input type="hidden" name="next" value="{{ next }}" />
+        <button type="submit" class="btn btn-primary btn-full">登入</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

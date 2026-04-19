@@ -1,0 +1,9 @@
+{% for project in projects %}
+<div class="project-card" id="project-card-{{ project.id }}">
+  <div class="project-card-header">
+    <div class="project-color-dot" style="background:{{ project.color }}"></div>
+    <h3 class="project-name">{{ project.name }}</h3>
+  </div>
+  {% if project.description %}<p class="project-desc">{{ project.description }}</p>{% endif %}
+</div>
+{% endfor %}

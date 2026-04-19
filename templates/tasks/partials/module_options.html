@@ -1,0 +1,4 @@
+<option value="">— 選擇模組 —</option>
+{% for module in modules %}
+<option value="{{ module.id }}" {% if current_module_id == module.id|stringformat:'s' %}selected{% endif %}>{{ module.name }}</option>
+{% endfor %}

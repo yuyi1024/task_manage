@@ -1,0 +1,10 @@
+<div class="comment-item">
+  <div class="comment-avatar">{{ comment.user.username|first|upper }}</div>
+  <div class="comment-body">
+    <div class="comment-meta">
+      <span class="comment-author">{{ comment.user.get_full_name|default:comment.user.username }}</span>
+      <span class="comment-time">{{ comment.created_at|date:"Y/m/d H:i" }}</span>
+    </div>
+    <div class="comment-content">{{ comment.content|linebreaksbr }}</div>
+  </div>
+</div>

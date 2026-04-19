@@ -1,0 +1,187 @@
+{% load static %}
+<div class="panel-inner">
+
+  <!-- Panel Header -->
+  <div class="panel-header">
+    <div class="panel-header-left">
+      <span class="panel-task-id">#{{ task.id }}</span>
+      <span class="panel-meta">
+        建立 {{ task.created_at|date:"Y/m/d" }}
+        {% if task.created_by %} · {{ task.created_by.get_full_name|default:task.created_by.username }}{% endif %}
+      </span>
+    </div>
+    <div class="panel-header-right">
+      <span id="panel-save-status" class="panel-save-status"></span>
+      <button class="panel-close" onclick="_closeDetailPanel()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Task Title -->
+  <div class="panel-title-area">
+    <textarea class="panel-title-input" name="title"
+              hx-post="{% url 'tasks:task_update' task.id %}"
+              hx-trigger="input delay:800ms"
+              hx-swap="none"
+              placeholder="任務名稱..."
+              rows="2">{{ task.title }}</textarea>
+  </div>
+
+  <!-- Fields -->
+  <div class="panel-fields">
+
+    <div class="panel-row">
+      <div class="panel-field">
+        <label class="panel-field-label">狀態</label>
+        <select class="panel-select" name="status"
+                hx-post="{% url 'tasks:task_update' task.id %}"
+                hx-trigger="change" hx-swap="none">
+          {% for val, label in status_choices %}
+          <option value="{{ val }}" {% if task.status == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="panel-field">
+        <label class="panel-field-label">優先度</label>
+        <select class="panel-select" name="priority"
+                hx-post="{% url 'tasks:task_update' task.id %}"
+                hx-trigger="change" hx-swap="none">
+          {% for val, label in priority_choices %}
+          <option value="{{ val }}" {% if task.priority == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="panel-row">
+      <div class="panel-field">
+        <label class="panel-field-label">專案</label>
+        <select class="panel-select" name="project" id="panel-project-{{ task.id }}"
+                hx-post="{% url 'tasks:task_update' task.id %}"
+                hx-trigger="change" hx-swap="none"
+                onchange="loadPanelModules(this, {{ task.id }})">
+          <option value="">—</option>
+          {% for p in projects %}
+          <option value="{{ p.id }}" {% if task.project_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="panel-field">
+        <label class="panel-field-label">模組</label>
+        <select class="panel-select" name="module" id="panel-module-{{ task.id }}"
+                hx-post="{% url 'tasks:task_update' task.id %}"
+                hx-trigger="change" hx-swap="none">
+          <option value="">—</option>
+          {% for m in modules %}
+          <option value="{{ m.id }}" {% if task.module_id == m.id %}selected{% endif %}>{{ m.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="panel-row">
+      <div class="panel-field">
+        <label class="panel-field-label">Assign</label>
+        <select class="panel-select" name="assign"
+                hx-post="{% url 'tasks:task_update' task.id %}"
+                hx-trigger="change" hx-swap="none">
+          <option value="">—</option>
+          {% for u in users %}
+          <option value="{{ u.id }}" {% if task.assign_id == u.id %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="panel-field">
+        <label class="panel-field-label">Support</label>
+        <select class="panel-select" name="support"
+                hx-post="{% url 'tasks:task_update' task.id %}"
+                hx-trigger="change" hx-swap="none">
+          <option value="">—</option>
+          {% for u in users %}
+          <option value="{{ u.id }}" {% if task.support_id == u.id %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="panel-field">
+        <label class="panel-field-label">PM</label>
+        <select class="panel-select" name="pm"
+                hx-post="{% url 'tasks:task_update' task.id %}"
+                hx-trigger="change" hx-swap="none">
+          <option value="">—</option>
+          {% for u in users %}
+          <option value="{{ u.id }}" {% if task.pm_id == u.id %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="panel-row">
+      <div class="panel-field">
+        <label class="panel-field-label">開始日期</label>
+        <input type="date" class="panel-input" name="start_date"
+               value="{{ task.start_date|date:'Y-m-d'|default:'' }}"
+               hx-post="{% url 'tasks:task_update' task.id %}"
+               hx-trigger="change" hx-swap="none" />
+      </div>
+      <div class="panel-field">
+        <label class="panel-field-label">結束日期</label>
+        <input type="date" class="panel-input" name="end_date"
+               value="{{ task.end_date|date:'Y-m-d'|default:'' }}"
+               hx-post="{% url 'tasks:task_update' task.id %}"
+               hx-trigger="change" hx-swap="none" />
+      </div>
+      <div class="panel-field">
+        <label class="panel-field-label">預估工時</label>
+        <input type="text" class="panel-input" name="estimated_hours"
+               value="{{ task.estimated_hours }}"
+               placeholder="3d / 5h"
+               hx-post="{% url 'tasks:task_update' task.id %}"
+               hx-trigger="input delay:800ms" hx-swap="none" />
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Rich Text Editor -->
+  <div class="panel-section-title">詳細說明</div>
+  <div class="panel-editor-area">
+    <div id="tiptap-editor-{{ task.id }}"
+         data-content="{{ task.description }}"></div>
+  </div>
+
+  <!-- Comments -->
+  <div class="panel-section-title">留言</div>
+  <div class="panel-comments">
+    <div class="comment-list" id="comment-list-{{ task.id }}">
+      {% for comment in comments %}
+        {% include "tasks/partials/comment_item.html" %}
+      {% empty %}
+        <div class="comment-empty">尚無留言</div>
+      {% endfor %}
+    </div>
+    <form class="comment-form"
+          hx-post="{% url 'tasks:task_comment_create' task.id %}"
+          hx-target="#comment-list-{{ task.id }}"
+          hx-swap="beforeend"
+          hx-on::after-request="if(event.detail.successful){ this.querySelector('textarea').value=''; this.querySelector('.comment-empty') && this.querySelector('.comment-empty').remove(); }">
+      {% csrf_token %}
+      <textarea class="comment-input" name="content" placeholder="新增留言..." rows="2"></textarea>
+      <div class="comment-form-footer">
+        <span class="comment-form-user">{{ request.user.get_full_name|default:request.user.username }}</span>
+        <button type="submit" class="btn btn-primary btn-sm">送出</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div class="panel-footer">
+    <span>最後更新：{{ task.updated_at|date:"Y/m/d H:i" }}</span>
+    {% if task.last_modified_by %}
+    <span>· {{ task.last_modified_by.get_full_name|default:task.last_modified_by.username }}</span>
+    {% endif %}
+  </div>
+
+</div>

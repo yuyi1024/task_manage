@@ -1,0 +1,387 @@
+/* ============================================================
+   TaskFlow — TipTap Editor Styles (Notion-like)
+   ============================================================ */
+
+/* ── Toolbar ─────────────────────────────────────────────── */
+.tt-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 6px 8px;
+  background: var(--bg-secondary, #f8f9fa);
+  border: 1px solid var(--border, #e2e8f0);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  user-select: none;
+}
+
+.tt-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.tt-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border, #e2e8f0);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.tt-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: var(--text-secondary, #64748b);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.tt-btn:hover { background: var(--bg-hover, #e8ecf0); color: var(--text-primary, #1e293b); }
+.tt-btn.tt-active { background: var(--accent-light, #eff6ff); color: var(--accent, #3b82f6); }
+
+.tt-select {
+  height: 26px;
+  padding: 0 6px;
+  font-size: 12px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 4px;
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #1e293b);
+  cursor: pointer;
+  outline: none;
+}
+.tt-select:focus { border-color: var(--accent, #3b82f6); }
+
+.tt-color-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-secondary, #64748b);
+  transition: background .15s;
+  position: relative;
+}
+.tt-color-wrap:hover { background: var(--bg-hover, #e8ecf0); }
+.tt-color-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Editor Wrap ─────────────────────────────────────────── */
+.tt-editor-wrap {
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 0 0 6px 6px;
+  background: var(--bg-primary, #fff);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+.tt-editor-wrap.tt-no-toolbar {
+  border-radius: 6px;
+}
+.tt-editor-wrap .ProseMirror {
+  flex: 1;
+  outline: none;
+  padding: 12px 14px;
+  min-height: 200px;
+}
+
+/* ── Content Typography ──────────────────────────────────── */
+.tt-content {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-primary, #1e293b);
+  word-break: break-word;
+}
+.tt-content h1, .tt-content h2, .tt-content h3 {
+  font-weight: 600;
+  margin: 1em 0 .4em;
+  line-height: 1.3;
+}
+.tt-content h1 { font-size: 1.4em; }
+.tt-content h2 { font-size: 1.2em; }
+.tt-content h3 { font-size: 1.05em; }
+.tt-content p { margin: 0 0 .5em; }
+.tt-content p:last-child { margin-bottom: 0; }
+.tt-content ul, .tt-content ol {
+  margin: .4em 0 .5em;
+  padding-left: 1.6em;
+}
+.tt-content li { margin: .2em 0; }
+.tt-content blockquote {
+  margin: .6em 0;
+  padding: .4em .8em;
+  border-left: 3px solid var(--accent, #3b82f6);
+  background: var(--bg-secondary, #f8f9fa);
+  border-radius: 0 4px 4px 0;
+  color: var(--text-secondary, #64748b);
+}
+.tt-content strong { font-weight: 600; }
+.tt-content em { font-style: italic; }
+.tt-content u { text-decoration: underline; }
+.tt-content s { text-decoration: line-through; }
+.tt-content a { color: var(--accent, #3b82f6); text-decoration: underline; text-underline-offset: 2px; }
+.tt-content a:hover { color: var(--accent-dark, #2563eb); }
+.tt-content img { max-width: 100%; height: auto; border-radius: 4px; margin: .4em 0; display: block; }
+
+/* Placeholder */
+.tt-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted, #94a3b8);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* ── Task List ───────────────────────────────────────────── */
+.tt-content ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+  margin: .4em 0 .5em;
+}
+.tt-content li[data-type="taskItem"] {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: .25em 0;
+}
+.tt-content li[data-type="taskItem"] > label {
+  flex-shrink: 0;
+  margin-top: 3px;
+  cursor: pointer;
+}
+.tt-content li[data-type="taskItem"] > label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--accent, #3b82f6);
+  border-radius: 3px;
+}
+.tt-content li[data-type="taskItem"] > div { flex: 1; min-width: 0; }
+.tt-content li[data-type="taskItem"][data-checked="true"] > div {
+  text-decoration: line-through;
+  color: var(--text-muted, #94a3b8);
+}
+
+/* ── Loading / Error ─────────────────────────────────────── */
+.tt-loading, .tt-error {
+  padding: 20px 14px;
+  font-size: 13px;
+  color: var(--text-secondary, #64748b);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+}
+.tt-error { color: #ef4444; border-color: #fee2e2; background: #fee2e2; }
+
+/* ── Bubble Menu ─────────────────────────────────────────── */
+.tt-bubble-menu {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 6px;
+  background: #1e293b;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25), 0 1px 4px rgba(0,0,0,.15);
+}
+
+.tt-bb-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+  padding: 0;
+}
+.tt-bb-btn:hover  { background: rgba(255,255,255,.12); color: #fff; }
+.tt-bb-btn.tt-active { background: rgba(255,255,255,.18); color: #fff; }
+
+.tt-bubble-menu .tt-sep { background: rgba(255,255,255,.15); }
+
+.tt-bb-color {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #cbd5e1;
+  transition: background .12s;
+  position: relative;
+}
+.tt-bb-color:hover { background: rgba(255,255,255,.12); }
+
+/* ── Floating Menu ───────────────────────────────────────── */
+.tt-float-menu {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 6px;
+  background: var(--bg-primary, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.1);
+}
+
+.tt-float-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  min-width: 28px;
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: var(--text-secondary, #64748b);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.tt-float-btn:hover { background: var(--bg-hover, #e8ecf0); color: var(--text-primary, #1e293b); }
+
+/* ── Slash Command Popup ─────────────────────────────────── */
+.tt-slash-popup {
+  width: 248px;
+  max-height: 288px;
+  overflow-y: auto;
+  background: var(--bg-primary, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.06);
+  padding: 4px;
+  scrollbar-width: thin;
+}
+
+.tt-slash-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background .1s;
+}
+.tt-slash-item:hover,
+.tt-slash-active { background: var(--bg-secondary, #f1f5f9); }
+
+.tt-slash-icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 5px;
+  background: var(--bg-secondary, #f1f5f9);
+  color: var(--text-secondary, #64748b);
+  flex-shrink: 0;
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.tt-slash-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #1e293b);
+  line-height: 1.3;
+}
+.tt-slash-sub {
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+  margin-top: 1px;
+}
+
+/* ── Table Content ───────────────────────────────────────── */
+.tt-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: .6em 0;
+  font-size: 13.5px;
+  table-layout: fixed;
+}
+.tt-content th,
+.tt-content td {
+  border: 1px solid var(--border, #e2e8f0);
+  padding: 6px 10px;
+  vertical-align: top;
+  min-width: 60px;
+  position: relative;
+}
+.tt-content th {
+  background: var(--bg-secondary, #f8f9fa);
+  font-weight: 600;
+  text-align: left;
+  color: var(--text-primary, #1e293b);
+}
+.tt-content td { background: var(--bg-primary, #fff); }
+
+/* Selected cell highlight (TipTap adds this class) */
+.tt-content .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-light, #eff6ff);
+  opacity: .6;
+  pointer-events: none;
+}
+
+/* ── Table Action Bar ────────────────────────────────────── */
+.tt-table-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background: var(--bg-secondary, #f8f9fa);
+  border: 1px solid var(--border, #e2e8f0);
+  border-top: none;
+  border-bottom: none;
+}
+
+.tt-table-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-right: 4px;
+}
+
+.tt-tb-btn {
+  height: 22px;
+  padding: 0 8px;
+  font-size: 12px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 4px;
+  background: var(--bg-primary, #fff);
+  color: var(--text-secondary, #64748b);
+  cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+  white-space: nowrap;
+}
+.tt-tb-btn:hover { background: var(--bg-hover, #e8ecf0); color: var(--text-primary, #1e293b); }
+.tt-tb-btn.tt-tb-del { color: #ef4444; border-color: #fecaca; }
+.tt-tb-btn.tt-tb-del:hover { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
