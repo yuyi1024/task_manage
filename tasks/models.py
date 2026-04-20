@@ -119,7 +119,7 @@ class TaskComment(models.Model):
 
 
 class TaskImage(models.Model):
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='images')
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True, related_name='images')
     image = models.ImageField(upload_to='task_images/%Y/%m/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

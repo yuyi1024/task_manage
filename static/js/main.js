@@ -277,7 +277,7 @@ function openDetailPanel(taskId) {
         content: savedContent,
         saveUrl: `/tasks/${taskId}/update-description/`,
         saveField: 'description',
-        uploadUrl: `/tasks/image-upload/`,
+        uploadUrl: `/tasks/image-upload/?task_id=${taskId}`,
         onStatus: (status) => {
           setPanelSaveStatus(status);
           if (status === 'saved') _panelModified = true;

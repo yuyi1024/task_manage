@@ -392,7 +392,7 @@ def module_options(request):
 @login_required
 @require_http_methods(['POST'])
 def image_upload(request):
-    task_id = request.POST.get('task_id')
+    task_id = request.POST.get('task_id') or request.GET.get('task_id')
     image_file = request.FILES.get('image')
     if not image_file:
         return JsonResponse({'error': 'No image provided'}, status=400)
