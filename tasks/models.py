@@ -92,7 +92,7 @@ class Task(models.Model):
             'in_progress': '#3b82f6',
             'unconfirm': '#f97316',
             'done': '#22c55e',
-            'pause': '#8b5cf6',
+            'pause': '#a8896a',
         }
         return colors.get(self.status, '#94a3b8')
 

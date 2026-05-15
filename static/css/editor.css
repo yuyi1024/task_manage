@@ -155,26 +155,37 @@
   padding-left: 0;
   margin: .4em 0 .5em;
 }
-.tt-content li[data-type="taskItem"] {
+.tt-content li[data-type="taskItem"],
+.tt-content li[data-checked] {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 6px;
   margin: .25em 0;
+  list-style: none;
+  padding: 0;
 }
-.tt-content li[data-type="taskItem"] > label {
+.tt-content li[data-type="taskItem"] > label,
+.tt-content li[data-checked] > label {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
   margin-top: 3px;
-  cursor: pointer;
 }
-.tt-content li[data-type="taskItem"] > label input[type="checkbox"] {
+.tt-content li[data-type="taskItem"] > div,
+.tt-content li[data-checked] > div {
+  flex: 1;
+  min-width: 0;
+}
+.tt-content li[data-type="taskItem"] > label input[type="checkbox"],
+.tt-content li[data-checked] > label input[type="checkbox"] {
   width: 14px;
   height: 14px;
   cursor: pointer;
   accent-color: var(--accent, #3b82f6);
-  border-radius: 3px;
+  margin: 0;
 }
-.tt-content li[data-type="taskItem"] > div { flex: 1; min-width: 0; }
-.tt-content li[data-type="taskItem"][data-checked="true"] > div {
+.tt-content li[data-type="taskItem"][data-checked="true"] > div,
+.tt-content li[data-checked="true"] > div {
   text-decoration: line-through;
   color: var(--text-muted, #94a3b8);
 }

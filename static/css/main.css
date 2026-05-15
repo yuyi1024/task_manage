@@ -570,8 +570,8 @@ body {
 }
 
 .task-group[data-status="pause"] {
-  --g-color: #8b5cf6;
-  --g-bg: #faf5ff;
+  --g-color: #a8896a;
+  --g-bg: #faf6f1;
 }
 
 .task-group[data-status] .group-header {
@@ -782,7 +782,7 @@ body {
 }
 
 .status-pause {
-  color: #7c3aed;
+  color: #a8896a;
 }
 
 /* ── Priority — badge / pill ────────────────── */
