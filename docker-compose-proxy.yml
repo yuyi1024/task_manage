@@ -1,0 +1,30 @@
+services:
+  web:
+    build: .
+    image: task-manage:latest
+    container_name: task-manage-web
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - media_files:/app/media
+    depends_on: []
+
+  nginx:
+    image: nginx:alpine
+    container_name: task-manage-nginx
+    restart: unless-stopped
+    ports:
+      - "1024:80"
+    volumes:
+      - ./nginx/nginx-proxy.conf.template:/etc/nginx/templates/nginx-proxy.conf.template:ro
+      - media_files:/app/media:ro
+    environment:
+      - URL_PREFIX=${URL_PREFIX}
+    command: >
+      /bin/sh -c "envsubst '$$URL_PREFIX' < /etc/nginx/templates/nginx-proxy.conf.template
+      > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+    depends_on:
+      - web
+
+volumes:
+  media_files:

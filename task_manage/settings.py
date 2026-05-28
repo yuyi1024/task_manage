@@ -80,7 +80,11 @@ TIME_ZONE = 'Asia/Taipei'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = '/static/'
+URL_PREFIX = os.environ.get('URL_PREFIX', '')
+if URL_PREFIX and not URL_PREFIX.startswith('/'):
+    URL_PREFIX = '/' + URL_PREFIX
+
+STATIC_URL = f'{URL_PREFIX}/static/' if URL_PREFIX else '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATICFILES_STORAGE = (
@@ -89,11 +93,12 @@ STATICFILES_STORAGE = (
     'whitenoise.storage.CompressedManifestStaticFilesStorage'
 )
 
-MEDIA_URL = '/media/'
+MEDIA_URL = f'{URL_PREFIX}/media/' if URL_PREFIX else '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/tasks/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGIN_URL = f'{URL_PREFIX}/accounts/login/' if URL_PREFIX else '/accounts/login/'
+LOGIN_REDIRECT_URL = f'{URL_PREFIX}/tasks/' if URL_PREFIX else '/tasks/'
+LOGOUT_REDIRECT_URL = f'{URL_PREFIX}/accounts/login/' if URL_PREFIX else '/accounts/login/'
