@@ -39,4 +39,17 @@ urlpatterns = [
 
     # API
     path('api/users/', views.users_api, name='users_api'),
+
+    # Notes overview (all projects)
+    path('notes/', views.all_notes_list, name='all_notes_list'),
+    path('notes/create/', views.note_create_any, name='note_create_any'),
+
+    # Notes per project
+    path('projects/<int:project_pk>/notes/', views.note_list, name='note_list'),
+    path('projects/<int:project_pk>/notes/create/', views.note_create, name='note_create'),
+    path('notes/<int:pk>/', views.note_detail, name='note_detail'),
+    path('notes/<int:pk>/update/', views.note_update, name='note_update'),
+    path('notes/<int:pk>/update-content/', views.note_update_content, name='note_update_content'),
+    path('notes/<int:pk>/delete/', views.note_delete, name='note_delete'),
+    path('notes/<int:pk>/pin/', views.note_pin_toggle, name='note_pin_toggle'),
 ]

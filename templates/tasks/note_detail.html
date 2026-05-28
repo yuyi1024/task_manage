@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ note.title }} — {{ note.project.name }} — TaskFlow{% endblock %}
+{% block page_title %}
+  <a href="{% url 'tasks:project_list' %}" class="breadcrumb-link">專案管理</a>
+  <span class="breadcrumb-sep">›</span>
+  <a href="{% url 'tasks:note_list' note.project.id %}" class="breadcrumb-link">
+    <span style="color:{{ note.project.color }}">
+      <i data-lucide="{{ note.project.icon|default:'folder' }}" style="width:15px;height:15px;vertical-align:-2px"></i>
+    </span>
+    {{ note.project.name }}
+  </a>
+  <span class="breadcrumb-sep">›</span>
+  筆記
+{% endblock %}
+
+{% block topbar_actions %}
+<span id="note-save-status" class="note-save-status"></span>
+<button id="note-pin-btn"
+        class="btn btn-ghost btn-sm {% if note.is_pinned %}btn-pinned{% endif %}"
+        onclick="toggleNotePin({{ note.id }}, this)"
+        data-pin-url="{% url 'tasks:note_pin_toggle' note.id %}"
+        title="{% if note.is_pinned %}取消置頂{% else %}置頂{% endif %}">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="{% if note.is_pinned %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2">
+    <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/>
+  </svg>
+  {% if note.is_pinned %}已置頂{% else %}置頂{% endif %}
+</button>
+<form method="post" action="{% url 'tasks:note_delete' note.id %}" style="display:inline"
+      onsubmit="return confirm('確定要刪除這篇筆記嗎？')">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-ghost btn-sm btn-danger-ghost">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    刪除
+  </button>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="note-detail-wrap">
+
+  <!-- Title -->
+  <div class="note-detail-title-area">
+    <div class="note-detail-title"
+         id="note-title-display"
+         contenteditable="true"
+         spellcheck="false"
+         data-placeholder="筆記標題..."
+         data-save-url="{% url 'tasks:note_update' note.id %}"
+         data-field="title">{{ note.title }}</div>
+  </div>
+
+  <!-- Summary -->
+  <div class="note-detail-summary-area">
+    <div class="note-detail-summary"
+         id="note-summary-display"
+         contenteditable="true"
+         spellcheck="false"
+         data-placeholder="新增摘要（選填）..."
+         data-save-url="{% url 'tasks:note_update' note.id %}"
+         data-field="summary">{% if note.summary %}{{ note.summary }}{% endif %}</div>
+  </div>
+
+  <!-- Meta -->
+  <div class="note-detail-meta">
+    <span>建立 {{ note.created_at|date:"Y/m/d" }}</span>
+    {% if note.created_by %}
+    <span>· {{ note.created_by.get_full_name|default:note.created_by.username }}</span>
+    {% endif %}
+    <span>· 更新 {{ note.updated_at|date:"Y/m/d H:i" }}</span>
+    {% if note.last_modified_by %}
+    <span>· {{ note.last_modified_by.get_full_name|default:note.last_modified_by.username }}</span>
+    {% endif %}
+  </div>
+
+  <hr class="note-divider" />
+
+  <!-- Content Editor -->
+  <div class="note-editor-area" id="note-editor-area">
+    <div class="note-editor-header">
+      <span class="note-editor-label">內文</span>
+      <span class="note-editor-hint">支援 Markdown，輸入 / 插入區塊</span>
+    </div>
+    <div class="note-editor-body">
+      <div id="tiptap-note-{{ note.id }}"
+           data-content="{{ note.content }}"
+           data-save-url="{% url 'tasks:note_update_content' note.id %}"
+           data-upload-url="{% url 'tasks:image_upload' %}"></div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const noteId = {{ note.id }};
+  const container = document.getElementById('tiptap-note-' + noteId);
+  if (!container) return;
+
+  function setNoteStatus(status) {
+    const bar = document.getElementById('note-save-status');
+    if (!bar) return;
+    const map = {
+      saving: { text: '儲存中...', color: '#aaa' },
+      saved:  { text: '✓ 已儲存', color: '#22c55e' },
+      error:  { text: '⚠ 儲存失敗', color: '#ef4444' },
+    };
+    const s = map[status] || { text: '', color: '' };
+    bar.textContent = s.text;
+    bar.style.color = s.color;
+    if (status === 'saved') setTimeout(() => { if (bar.textContent === '✓ 已儲存') bar.textContent = ''; }, 2500);
+  }
+
+  initEditor({
+    containerId: 'tiptap-note-' + noteId,
+    content:     container.dataset.content || '',
+    saveUrl:     container.dataset.saveUrl,
+    saveField:   'content',
+    uploadUrl:   container.dataset.uploadUrl + '?note_id=' + noteId,
+    showToolbar: false,
+    onStatus:    setNoteStatus,
+  });
+
+  // Click anywhere in editor body → focus the ProseMirror editable
+  document.querySelector('.note-editor-body')?.addEventListener('click', (e) => {
+    if (e.target.closest('.ProseMirror')) return;
+    document.querySelector('.note-editor-body .ProseMirror')?.focus();
+  });
+
+  // Inline edit for title / summary
+  document.querySelectorAll('[data-save-url][data-field]').forEach(el => {
+    let saveTimer = null;
+    el.addEventListener('input', () => {
+      setNoteStatus('saving');
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        const url = el.dataset.saveUrl;
+        const field = el.dataset.field;
+        const body = new URLSearchParams();
+        body.set(field, el.innerText.trim());
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': getCsrfToken() },
+          body: body.toString(),
+        })
+          .then(r => setNoteStatus(r.ok ? 'saved' : 'error'))
+          .catch(() => setNoteStatus('error'));
+      }, 600);
+    });
+    // Prevent newlines in title/summary
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+  });
+})();
+</script>
+{% endblock %}

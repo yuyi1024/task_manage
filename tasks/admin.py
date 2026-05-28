@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Project, Module, Task, TaskImage
+from .models import Project, Module, Task, TaskImage, ProjectNote
 
 
 class ModuleInline(admin.TabularInline):
@@ -31,3 +31,11 @@ class TaskAdmin(admin.ModelAdmin):
 @admin.register(TaskImage)
 class TaskImageAdmin(admin.ModelAdmin):
     list_display = ['task', 'uploaded_at', 'uploaded_by']
+
+
+@admin.register(ProjectNote)
+class ProjectNoteAdmin(admin.ModelAdmin):
+    list_display = ['title', 'project', 'is_pinned', 'created_by', 'created_at', 'updated_at']
+    list_filter = ['project', 'is_pinned']
+    search_fields = ['title', 'summary', 'content']
+    readonly_fields = ['created_at', 'updated_at', 'created_by', 'last_modified_by']

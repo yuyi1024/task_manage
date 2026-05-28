@@ -99,6 +99,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Session 直接存在 cookie，不依賴資料庫，避免遠端 DB 連線不穩導致登出
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_COOKIE_AGE = 7 * 24 * 60 * 60  # 7 天
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True
+
 LOGIN_URL = f'{URL_PREFIX}/accounts/login/' if URL_PREFIX else '/accounts/login/'
 LOGIN_REDIRECT_URL = f'{URL_PREFIX}/tasks/' if URL_PREFIX else '/tasks/'
 LOGOUT_REDIRECT_URL = f'{URL_PREFIX}/accounts/login/' if URL_PREFIX else '/accounts/login/'

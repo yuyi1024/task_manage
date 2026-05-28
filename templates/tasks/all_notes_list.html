@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}筆記總覽 — TaskFlow{% endblock %}
+{% block page_title %}筆記總覽{% endblock %}
+
+{% block topbar_actions %}
+<button class="btn btn-primary" onclick="document.getElementById('new-note-any-modal').style.display='flex'">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  新增筆記
+</button>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filter Bar -->
+<form method="get"
+      hx-get="{% url 'tasks:all_notes_list' %}"
+      hx-target="#note-cards-container"
+      hx-trigger="input delay:400ms from:#note-search, change from:.note-filter-bar select"
+      hx-push-url="true"
+      class="note-filter-bar">
+  <div class="note-filter-left">
+    <div class="note-search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="note-search" name="q" value="{{ filter_q }}"
+             class="note-search-input" placeholder="搜尋標題、摘要或內文..." autocomplete="off" />
+    </div>
+    <select name="project" class="filter-select-sm">
+      <option value="">所有專案</option>
+      {% for p in projects %}
+      <option value="{{ p.id }}" {% if filter_project == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="author" class="filter-select-sm">
+      <option value="">所有作者</option>
+      {% for u in users %}
+      <option value="{{ u.id }}" {% if filter_author == u.id|stringformat:"s" %}selected{% endif %}>
+        {{ u.get_full_name|default:u.username }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="note-filter-right">
+    <select name="sort_by" class="filter-select-sm">
+      {% for val, label in sort_options %}
+      <option value="{{ val }}" {% if sort_by == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    {% if filter_q or filter_project or filter_author %}
+    <a href="{% url 'tasks:all_notes_list' %}" class="btn btn-ghost btn-sm">清除</a>
+    {% endif %}
+  </div>
+</form>
+
+<!-- Cards -->
+<div id="note-cards-container" class="note-cards-grid">
+  {% include "tasks/partials/note_cards.html" with show_project=True %}
+</div>
+
+<!-- New Note Modal -->
+<div id="new-note-any-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-card modal-card-sm" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">新增筆記</h3>
+      <button class="modal-close" onclick="document.getElementById('new-note-any-modal').style.display='none'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form method="post" action="{% url 'tasks:note_create_any' %}" class="modal-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">專案 <span class="required">*</span></label>
+        <select name="project" class="form-input form-select" required>
+          <option value="">— 選擇專案 —</option>
+          {% for p in projects %}
+          <option value="{{ p.id }}">{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">標題</label>
+        <input type="text" name="title" class="form-input" placeholder="筆記標題（選填，預設「未命名筆記」）" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('new-note-any-modal').style.display='none'">取消</button>
+        <button type="submit" class="btn btn-primary">建立並編輯</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

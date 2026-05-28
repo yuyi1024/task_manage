@@ -522,6 +522,28 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// ── Note Pin Toggle ────────────────────────────────────
+function toggleNotePin(noteId, btn) {
+  const pinUrl = btn.dataset.pinUrl || (window.NOTES_PIN_BASE ? window.NOTES_PIN_BASE.replace('0', noteId) : '');
+  fetch(pinUrl, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCsrfToken() },
+  })
+    .then(r => r.json())
+    .then(data => {
+      const pinned = data.is_pinned;
+      btn.classList.toggle('btn-pinned', pinned);
+      btn.title = pinned ? '取消置頂' : '置頂';
+      btn.innerHTML = `
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="${pinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+          <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/>
+        </svg>
+        ${pinned ? '已置頂' : '置頂'}`;
+      showToast(pinned ? '已置頂' : '已取消置頂', 'success', 1600);
+    })
+    .catch(() => showToast('操作失敗', 'error'));
+}
+
 // ── Spin animation ─────────────────────────────────────
 document.head.insertAdjacentHTML('beforeend',
   '<style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>');

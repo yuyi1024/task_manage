@@ -1,0 +1,24 @@
+<a href="{% url 'tasks:note_detail' note.id %}" class="note-card" id="note-card-{{ note.id }}">
+  <div class="note-card-top">
+    {% if show_project %}
+    <span class="note-card-project" style="color:{{ note.project.color }}">
+      <i data-lucide="{{ note.project.icon|default:'folder' }}"></i>
+      {{ note.project.name }}
+    </span>
+    {% endif %}
+    {% if note.is_pinned %}
+    <span class="note-pin-badge" title="已置頂">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16 3a1 1 0 0 1 .7 1.7L14 7.4l1.3 6.2-3.3-2-3.3 2 1.3-6.2-2.7-2.7A1 1 0 0 1 8 3h8z"/></svg>
+    </span>
+    {% endif %}
+  </div>
+  <div class="note-card-title">{{ note.title }}</div>
+  {% if note.summary %}
+  <div class="note-card-summary">{{ note.summary }}</div>
+  {% endif %}
+  <div class="note-card-meta">
+    {% if note.created_by %}<span class="note-card-author">{{ note.created_by.get_full_name|default:note.created_by.username }}</span>
+    <span class="note-card-dot">·</span>{% endif %}
+    <span class="note-card-date">{{ note.updated_at|date:"Y/m/d" }}</span>
+  </div>
+</a>

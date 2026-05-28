@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from urllib.parse import urlencode
 from django.db.models import Q, Case, When, Value, IntegerField
-from .models import Project, Module, Task, TaskImage, TaskComment
+from .models import Project, Module, Task, TaskImage, TaskComment, ProjectNote
 from .forms import ProjectForm, ModuleForm, TaskForm
 
 _FILTER_SESSION_KEY = 'task_list_filters'
@@ -409,7 +409,7 @@ def image_upload(request):
 
 @login_required
 def project_list(request):
-    projects = Project.objects.prefetch_related('modules', 'tasks').all()
+    projects = Project.objects.prefetch_related('modules', 'tasks', 'project_notes').all()
     context = {
         'projects': projects,
         'form': ProjectForm(),
@@ -502,3 +502,195 @@ def users_api(request):
         for u in _get_users()
     ]
     return JsonResponse({'users': users})
+
+
+# ─── Notes ───────────────────────────────────────────────────────────────────
+
+_ALL_NOTES_SESSION_KEY = 'all_notes_filters'
+_NOTE_FILTER_SESSION_PREFIX = 'note_list_filters_'
+
+_NOTE_SORT_MAP = {
+    '-updated_at': ['-is_pinned', '-updated_at'],
+    'updated_at':  ['-is_pinned', 'updated_at'],
+    '-created_at': ['-is_pinned', '-created_at'],
+    'created_at':  ['-is_pinned', 'created_at'],
+    'title':       ['-is_pinned', 'title'],
+}
+
+_NOTE_SORT_OPTIONS = [
+    ('-updated_at', '最近修改'),
+    ('-created_at', '最新建立'),
+    ('created_at',  '最舊建立'),
+    ('title',       '標題 A-Z'),
+]
+
+
+@login_required
+def all_notes_list(request):
+    if request.GET:
+        filters = {
+            'q':        request.GET.get('q', ''),
+            'project':  request.GET.get('project', ''),
+            'author':   request.GET.get('author', ''),
+            'sort_by':  request.GET.get('sort_by', '-updated_at'),
+        }
+        request.session[_ALL_NOTES_SESSION_KEY] = filters
+    else:
+        filters = request.session.get(_ALL_NOTES_SESSION_KEY, {'sort_by': '-updated_at'})
+        active = {k: v for k, v in filters.items() if v and not (k == 'sort_by' and v == '-updated_at')}
+        if active:
+            params = urlencode({**active, 'sort_by': filters.get('sort_by', '-updated_at')})
+            return redirect(f"{reverse('tasks:all_notes_list')}?{params}")
+
+    q        = filters.get('q', '')
+    project  = filters.get('project', '')
+    author   = filters.get('author', '')
+    sort_by  = filters.get('sort_by', '-updated_at')
+
+    qs = ProjectNote.objects.select_related('project', 'created_by', 'last_modified_by')
+    if q:
+        qs = qs.filter(Q(title__icontains=q) | Q(summary__icontains=q) | Q(content__icontains=q))
+    if project:
+        qs = qs.filter(project_id=project)
+    if author:
+        qs = qs.filter(created_by_id=author)
+    qs = qs.order_by(*_NOTE_SORT_MAP.get(sort_by, ['-is_pinned', '-updated_at']))
+
+    if request.headers.get('HX-Request'):
+        return render(request, 'tasks/partials/note_cards.html', {'notes': qs, 'show_project': True})
+
+    return render(request, 'tasks/all_notes_list.html', {
+        'notes':          qs,
+        'projects':       Project.objects.all(),
+        'users':          _get_users(),
+        'filter_q':       q,
+        'filter_project': project,
+        'filter_author':  author,
+        'sort_by':        sort_by,
+        'sort_options':   _NOTE_SORT_OPTIONS,
+    })
+
+
+@login_required
+def note_list(request, project_pk):
+    project = get_object_or_404(Project, pk=project_pk)
+    session_key = f'{_NOTE_FILTER_SESSION_PREFIX}{project_pk}'
+
+    if request.GET:
+        filters = {
+            'q':       request.GET.get('q', ''),
+            'author':  request.GET.get('author', ''),
+            'sort_by': request.GET.get('sort_by', '-updated_at'),
+        }
+        request.session[session_key] = filters
+    else:
+        filters = request.session.get(session_key, {'sort_by': '-updated_at'})
+        active = {k: v for k, v in filters.items() if v and not (k == 'sort_by' and v == '-updated_at')}
+        if active:
+            params = urlencode({**active, 'sort_by': filters.get('sort_by', '-updated_at')})
+            return redirect(f"{reverse('tasks:note_list', kwargs={'project_pk': project_pk})}?{params}")
+
+    q       = filters.get('q', '')
+    author  = filters.get('author', '')
+    sort_by = filters.get('sort_by', '-updated_at')
+
+    qs = ProjectNote.objects.filter(project=project).select_related('created_by', 'last_modified_by')
+    if q:
+        qs = qs.filter(Q(title__icontains=q) | Q(summary__icontains=q) | Q(content__icontains=q))
+    if author:
+        qs = qs.filter(created_by_id=author)
+    qs = qs.order_by(*_NOTE_SORT_MAP.get(sort_by, ['-is_pinned', '-updated_at']))
+
+    if request.headers.get('HX-Request'):
+        return render(request, 'tasks/partials/note_cards.html', {'notes': qs, 'project': project})
+
+    return render(request, 'tasks/note_list.html', {
+        'project':      project,
+        'notes':        qs,
+        'users':        _get_users(),
+        'filter_q':     q,
+        'filter_author': author,
+        'sort_by':      sort_by,
+        'sort_options': _NOTE_SORT_OPTIONS,
+    })
+
+
+@login_required
+@require_http_methods(['POST'])
+def note_create_any(request):
+    project_id = request.POST.get('project', '').strip()
+    if not project_id:
+        return redirect('tasks:all_notes_list')
+    project = get_object_or_404(Project, pk=project_id)
+    title = request.POST.get('title', '').strip() or '未命名筆記'
+    note = ProjectNote.objects.create(
+        project=project,
+        title=title,
+        created_by=request.user,
+        last_modified_by=request.user,
+    )
+    return redirect('tasks:note_detail', pk=note.pk)
+
+
+@login_required
+@require_http_methods(['POST'])
+def note_create(request, project_pk):
+    project = get_object_or_404(Project, pk=project_pk)
+    title = request.POST.get('title', '').strip() or '未命名筆記'
+    note = ProjectNote.objects.create(
+        project=project,
+        title=title,
+        created_by=request.user,
+        last_modified_by=request.user,
+    )
+    return redirect('tasks:note_detail', pk=note.pk)
+
+
+@login_required
+def note_detail(request, pk):
+    note = get_object_or_404(
+        ProjectNote.objects.select_related('project', 'created_by', 'last_modified_by'),
+        pk=pk
+    )
+    return render(request, 'tasks/note_detail.html', {'note': note})
+
+
+@login_required
+@require_http_methods(['POST'])
+def note_update(request, pk):
+    note = get_object_or_404(ProjectNote, pk=pk)
+    if 'title' in request.POST:
+        note.title = request.POST.get('title', '').strip() or '未命名筆記'
+    if 'summary' in request.POST:
+        note.summary = request.POST.get('summary', '').strip()
+    note.last_modified_by = request.user
+    note.save()
+    return JsonResponse({'status': 'ok'})
+
+
+@login_required
+@require_http_methods(['POST'])
+def note_update_content(request, pk):
+    note = get_object_or_404(ProjectNote, pk=pk)
+    note.content = request.POST.get('content', '')
+    note.last_modified_by = request.user
+    note.save()
+    return JsonResponse({'status': 'ok'})
+
+
+@login_required
+@require_http_methods(['POST'])
+def note_delete(request, pk):
+    note = get_object_or_404(ProjectNote, pk=pk)
+    project_pk = note.project_id
+    note.delete()
+    return redirect('tasks:note_list', project_pk=project_pk)
+
+
+@login_required
+@require_http_methods(['POST'])
+def note_pin_toggle(request, pk):
+    note = get_object_or_404(ProjectNote, pk=pk)
+    note.is_pinned = not note.is_pinned
+    note.save(update_fields=['is_pinned'])
+    return JsonResponse({'is_pinned': note.is_pinned})

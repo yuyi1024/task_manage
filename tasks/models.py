@@ -126,3 +126,25 @@ class TaskImage(models.Model):
 
     def __str__(self):
         return f"Image for task {self.task_id}"
+
+
+class ProjectNote(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='project_notes')
+    title = models.CharField(max_length=255)
+    summary = models.CharField(max_length=500, blank=True)
+    content = models.TextField(blank=True)
+    is_pinned = models.BooleanField(default=False)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name='created_notes'
+    )
+    last_modified_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name='modified_notes'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-is_pinned', '-updated_at']
+
+    def __str__(self):
+        return self.title
