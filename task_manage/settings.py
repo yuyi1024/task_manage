@@ -80,7 +80,12 @@ TIME_ZONE = 'Asia/Taipei'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = '/static/'
+# Sub-path deployment: set SCRIPT_NAME=/your-prefix in .env (e.g. /task_manage)
+_SCRIPT_NAME = os.environ.get('SCRIPT_NAME', '').rstrip('/')
+if _SCRIPT_NAME:
+    FORCE_SCRIPT_NAME = _SCRIPT_NAME
+
+STATIC_URL = _SCRIPT_NAME + '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATICFILES_STORAGE = (
@@ -89,11 +94,11 @@ STATICFILES_STORAGE = (
     'whitenoise.storage.CompressedManifestStaticFilesStorage'
 )
 
-MEDIA_URL = '/media/'
+MEDIA_URL = _SCRIPT_NAME + '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/tasks/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGIN_URL = _SCRIPT_NAME + '/accounts/login/'
+LOGIN_REDIRECT_URL = _SCRIPT_NAME + '/tasks/'
+LOGOUT_REDIRECT_URL = _SCRIPT_NAME + '/accounts/login/'

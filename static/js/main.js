@@ -223,7 +223,7 @@ function _createGroupElement(key) {
 function _refreshTaskRow(taskId) {
   const row = document.getElementById('task-row-' + taskId);
   if (!row) return;
-  fetch(`/tasks/${taskId}/row/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+  fetch(`${window.TASKS_BASE}${taskId}/row/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     .then(r => r.ok ? r.text() : null)
     .then(html => {
       if (!html) return;
@@ -259,7 +259,7 @@ function openDetailPanel(taskId) {
       載入中...
     </div>`;
 
-  fetch(`/tasks/${taskId}/detail/`, {
+  fetch(`${window.TASKS_BASE}${taskId}/detail/`, {
     headers: { 'X-Requested-With': 'XMLHttpRequest' },
   })
     .then(r => {
@@ -275,9 +275,9 @@ function openDetailPanel(taskId) {
       initEditor({
         containerId: `tiptap-editor-${taskId}`,
         content: savedContent,
-        saveUrl: `/tasks/${taskId}/update-description/`,
+        saveUrl: `${window.TASKS_BASE}${taskId}/update-description/`,
         saveField: 'description',
-        uploadUrl: `/tasks/image-upload/?task_id=${taskId}`,
+        uploadUrl: `${window.TASKS_BASE}image-upload/?task_id=${taskId}`,
         onStatus: (status) => {
           setPanelSaveStatus(status);
           if (status === 'saved') _panelModified = true;
@@ -423,7 +423,7 @@ function handleProjectChange(selectEl, taskId) {
   if (!mod) return;
   mod.innerHTML = '<option value="">—</option>';
   if (!pid) return;
-  fetch(`/tasks/module-options/?project_id=${pid}`)
+  fetch(`${window.TASKS_BASE}module-options/?project_id=${pid}`)
     .then(r => r.text())
     .then(html => { mod.innerHTML = html; });
 }
@@ -435,7 +435,7 @@ function loadPanelModules(projectSelect, taskId) {
   if (!mod) return;
   mod.innerHTML = '<option value="">—</option>';
   if (!pid) return;
-  fetch(`/tasks/module-options/?project_id=${pid}`)
+  fetch(`${window.TASKS_BASE}module-options/?project_id=${pid}`)
     .then(r => r.text())
     .then(html => { mod.innerHTML = html; });
 }
@@ -592,7 +592,7 @@ function cloneTask(taskId, btn) {
   btn.disabled = true;
   btn.style.opacity = '.4';
 
-  fetch(`/tasks/${taskId}/clone/`, {
+  fetch(`${window.TASKS_BASE}${taskId}/clone/`, {
     method: 'POST',
     headers: {
       'X-CSRFToken': getCsrfToken(),

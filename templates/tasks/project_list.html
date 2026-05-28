@@ -187,7 +187,7 @@ function openEditProject(id, name, color, desc, icon) {
   document.getElementById('edit-project-name').value = name;
   document.getElementById('edit-project-color').value = color;
   document.getElementById('edit-project-desc').value = desc;
-  document.getElementById('edit-project-form').action = '/tasks/projects/' + id + '/update/';
+  document.getElementById('edit-project-form').action = '{% url "tasks:project_update" 0 %}'.replace('/0/', '/' + id + '/');
   const iconVal = icon || 'folder';
   document.getElementById('edit-project-icon').value = iconVal;
   document.getElementById('edit-icon-label').textContent = iconVal;

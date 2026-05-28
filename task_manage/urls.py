@@ -8,5 +8,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('tasks/', include('tasks.urls')),
-    path('', RedirectView.as_view(url='/tasks/', permanent=False)),
+    path('', RedirectView.as_view(pattern_name='tasks:task_list', permanent=False)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
