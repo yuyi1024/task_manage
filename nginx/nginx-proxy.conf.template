@@ -10,6 +10,8 @@ server {
         add_header Cache-Control "public";
     }
 
+    # All other requests (including /static/) pass through to Django/WhiteNoise.
+    # Django URL patterns embed URL_PREFIX directly, so the full path is matched as-is.
     location $URL_PREFIX/ {
         resolver 127.0.0.11 valid=10s;
         set $upstream http://web:8000;

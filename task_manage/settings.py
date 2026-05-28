@@ -80,12 +80,12 @@ TIME_ZONE = 'Asia/Taipei'
 USE_I18N = True
 USE_TZ = True
 
-# Sub-path deployment: set SCRIPT_NAME=/your-prefix in .env (e.g. /task_manage)
-_SCRIPT_NAME = os.environ.get('SCRIPT_NAME', '').rstrip('/')
-if _SCRIPT_NAME:
-    FORCE_SCRIPT_NAME = _SCRIPT_NAME
+# Sub-path deployment: set URL_PREFIX=/your-prefix in .env (e.g. /task_manage)
+# URL patterns in urls.py embed this prefix directly; no FORCE_SCRIPT_NAME needed.
+_p = os.environ.get('URL_PREFIX', '').strip('/')
+URL_PREFIX = f'/{_p}' if _p else ''
 
-STATIC_URL = _SCRIPT_NAME + '/static/'
+STATIC_URL = f'{URL_PREFIX}/static/' if URL_PREFIX else '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATICFILES_STORAGE = (
@@ -94,12 +94,11 @@ STATICFILES_STORAGE = (
     'whitenoise.storage.CompressedManifestStaticFilesStorage'
 )
 
-MEDIA_URL = _SCRIPT_NAME + '/media/'
+MEDIA_URL = f'{URL_PREFIX}/media/' if URL_PREFIX else '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = _SCRIPT_NAME + '/accounts/login/'
-LOGIN_REDIRECT_URL = _SCRIPT_NAME + '/tasks/'
-LOGOUT_REDIRECT_URL = _SCRIPT_NAME + '/accounts/login/'
+LOGIN_URL = f'{URL_PREFIX}/accounts/login/' if URL_PREFIX else '/accounts/login/'
+LOGIN_REDIRECT_URL = f'{URL_PREFIX}/tasks/' if URL_PREFIX else '/tasks/'
+LOGOUT_REDIRECT_URL = f'{URL_PREFIX}/accounts/login/' if URL_PREFIX else '/accounts/login/'
