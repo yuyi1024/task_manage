@@ -209,7 +209,7 @@
         </div>
       </div>
 
-      <div class="form-row-3">
+      <div class="form-row-2">
         <div class="form-group">
           <label class="form-label">狀態</label>
           <select name="status" class="form-select" id="new-task-status">
@@ -226,12 +226,24 @@
             {% endfor %}
           </select>
         </div>
+      </div>
+
+      <div class="form-row-2">
         <div class="form-group">
           <label class="form-label">Assign</label>
           <select name="assign" class="form-select">
             <option value="">—</option>
             {% for u in users %}
             <option value="{{ u.id }}">{{ u.get_full_name|default:u.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">PM</label>
+          <select name="pm" class="form-select">
+            <option value="">—</option>
+            {% for u in users %}
+            <option value="{{ u.id }}" {% if u == request.user %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
             {% endfor %}
           </select>
         </div>

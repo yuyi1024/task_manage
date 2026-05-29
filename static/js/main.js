@@ -4,10 +4,17 @@
 'use strict';
 
 // ── CSRF ──────────────────────────────────────────────
+// Cookie name may be customised (CSRF_COOKIE_NAME in settings.py).
+// Read from the server-rendered hx-headers attribute to avoid name mismatch.
 function getCsrfToken() {
-  return document.cookie.split(';')
-    .find(c => c.trim().startsWith('csrftoken='))
-    ?.split('=')[1] || '';
+  try {
+    const h = JSON.parse(document.body.getAttribute('hx-headers') || '{}');
+    if (h['X-CSRFToken']) return h['X-CSRFToken'];
+  } catch {}
+  // Fallback: scan cookies for any key ending in csrftoken
+  const pair = document.cookie.split(';')
+    .find(c => c.trim().toLowerCase().includes('csrftoken'));
+  return pair ? pair.trim().split('=').slice(1).join('=') : '';
 }
 
 // ── Toast ──────────────────────────────────────────────
@@ -374,12 +381,29 @@ function openNewTaskModal(groupVal, groupField) {
   if (!modal) return;
   modal.style.display = 'flex';
 
+  // Reset status to default each time modal opens
+  const statusEl = document.getElementById('new-task-status');
+  if (statusEl) statusEl.value = 'not_started';
+
   if (groupVal && groupField) {
     document.getElementById('new-task-group-val').value = groupVal;
     document.getElementById('new-task-group-field').value = groupField;
     const fieldMap = { status: 'new-task-status', priority: 'new-task-priority' };
     const el = document.getElementById(fieldMap[groupField]);
     if (el) el.value = groupVal;
+
+    if (groupField === 'project') {
+      const projectEl = document.getElementById('new-task-project');
+      if (projectEl) {
+        projectEl.value = groupVal;
+        const mod = document.getElementById('new-task-module');
+        if (mod) {
+          fetch(`${window.TASKS_BASE}module-options/?project_id=${groupVal}`)
+            .then(r => r.text())
+            .then(html => { mod.innerHTML = html; });
+        }
+      }
+    }
   }
 
   setTimeout(() => modal.querySelector('textarea')?.focus(), 80);

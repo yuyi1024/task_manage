@@ -156,7 +156,7 @@ def task_list(request):
         request.session[_FILTER_SESSION_KEY] = preserved
         redirect_url = reverse('tasks:task_list')
         if preserved:
-            redirect_url += '?' + urlencode(preserved.items())
+            redirect_url += '?' + urlencode(preserved)
         return redirect(redirect_url)
 
     if request.GET:
@@ -220,9 +220,20 @@ def task_create(request):
         last_modified_by=request.user,
     )
 
+    needs_save = False
     project_id = request.POST.get('project')
     if project_id:
         task.project_id = int(project_id)
+        needs_save = True
+    assign_id = request.POST.get('assign')
+    if assign_id:
+        task.assign_id = int(assign_id)
+        needs_save = True
+    pm_id = request.POST.get('pm')
+    if pm_id:
+        task.pm_id = int(pm_id)
+        needs_save = True
+    if needs_save:
         task.save()
 
     task = Task.objects.select_related('project', 'module', 'assign', 'support', 'pm').get(pk=task.pk)
