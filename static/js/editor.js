@@ -56,6 +56,12 @@ function _loadTipTap() {
 
 const _instances = new Map();
 
+function _resolveMediaUrls(html) {
+  const base = (window.MEDIA_URL || '/media/').replace(/\/$/, '');
+  if (base === '/media') return html;
+  return html.replace(/src="\/media\//g, `src="${base}/`);
+}
+
 // ── Public: initEditor ────────────────────────────────────────────────────────
 async function initEditor({
   containerId,
@@ -127,7 +133,7 @@ async function initEditor({
       }),
       SlashCommand,
     ],
-    content,
+    content: _resolveMediaUrls(content),
     editorProps: {
       attributes: { class: 'tt-content', spellcheck: 'false' },
     },

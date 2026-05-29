@@ -4,7 +4,7 @@ server {
 
     client_max_body_size 20M;
 
-    location /media/ {
+    location $URL_PREFIX/media/ {
         alias /app/media/;
         expires 7d;
         add_header Cache-Control "public";
