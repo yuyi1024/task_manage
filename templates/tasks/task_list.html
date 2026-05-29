@@ -106,9 +106,20 @@
          {% if group_by == 'priority' %}data-priority="{{ group.key }}"{% endif %}>
       <div class="group-header">
         <div class="group-header-left">
-          <button class="group-toggle {% if group.count == 0 %}collapsed{% endif %}" onclick="toggleGroup('{{ group.key }}')">
+          <button class="group-toggle {% if group.count == 0 or group_by == 'status' and group.key == 'done' %}collapsed{% endif %}" onclick="toggleGroup('{{ group.key }}')">
             <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
+          {% if group_by == 'status' %}
+          <span class="group-status-icon">
+            {% if group.key == 'pending' %}<i data-lucide="clock"></i>
+            {% elif group.key == 'not_started' %}<i data-lucide="circle-dashed"></i>
+            {% elif group.key == 'in_progress' %}<i data-lucide="loader"></i>
+            {% elif group.key == 'unconfirm' %}<i data-lucide="help-circle"></i>
+            {% elif group.key == 'done' %}<i data-lucide="check-circle-2"></i>
+            {% elif group.key == 'pause' %}<i data-lucide="pause-circle"></i>
+            {% endif %}
+          </span>
+          {% endif %}
           <span class="group-label">{{ group.label }}</span>
           <span class="group-count">{{ group.count }}</span>
         </div>
@@ -124,7 +135,7 @@
         </div>
       </div>
 
-      <div class="group-body" id="group-body-{{ group.key }}"{% if group.count == 0 %} style="display:none"{% endif %}>
+      <div class="group-body" id="group-body-{{ group.key }}"{% if group.count == 0 or group_by == 'status' and group.key == 'done' %} style="display:none"{% endif %}>
         <!-- Table Header -->
         <div class="task-table-header">
           <div class="col-task">任務</div>

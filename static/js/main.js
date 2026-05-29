@@ -169,6 +169,15 @@ function _updateGroupCount(groupEl) {
   }
 }
 
+const _STATUS_ICONS = {
+  pending: 'clock',
+  not_started: 'circle-dashed',
+  in_progress: 'loader',
+  unconfirm: 'help-circle',
+  done: 'check-circle-2',
+  pause: 'pause-circle',
+};
+
 function _createGroupElement(key) {
   const label = (window.TASK_GROUP_LABELS || {})[key] || key;
   const groupBy = window.TASK_GROUP_BY || '';
@@ -185,6 +194,10 @@ function _createGroupElement(key) {
     <div class="col-date">日期</div><div class="col-hours">工時</div>
     <div class="col-actions"></div></div>`;
 
+  const statusIconHtml = (groupBy === 'status' && _STATUS_ICONS[key])
+    ? `<span class="group-status-icon"><i data-lucide="${_STATUS_ICONS[key]}"></i></span>`
+    : '';
+
   const el = document.createElement('div');
   el.className = 'task-group';
   el.id = 'group-' + key;
@@ -197,6 +210,7 @@ function _createGroupElement(key) {
         <button class="group-toggle" onclick="toggleGroup('${key}')">
           <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
+        ${statusIconHtml}
         <span class="group-label">${label}</span>
         <span class="group-count">0</span>
       </div>
@@ -208,6 +222,8 @@ function _createGroupElement(key) {
       </div>
     </div>
     <div class="group-body" id="group-body-${key}">${tableHeader}</div>`;
+
+  if (statusIconHtml && typeof lucide !== 'undefined') lucide.createIcons({ nodes: [el] });
 
   el.style.cssText = 'opacity:0;transform:translateY(8px)';
   requestAnimationFrame(() => requestAnimationFrame(() => {

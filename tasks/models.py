@@ -33,10 +33,10 @@ class Module(models.Model):
 
 class Task(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
         ('not_started', 'Not Started'),
         ('in_progress', 'In Progress'),
         ('unconfirm', 'Unconfirm'),
+        ('pending', 'Pending'),
         ('pause', 'Pause'),
         ('done', 'Done'),
     ]
@@ -87,8 +87,8 @@ class Task(models.Model):
 
     def get_status_color(self):
         colors = {
-            'pending': '#f59e0b',
-            'not_started': '#94a3b8',
+            'pending': '#94a3b8',
+            'not_started': '#7dd3fc',
             'in_progress': '#3b82f6',
             'unconfirm': '#f97316',
             'done': '#22c55e',

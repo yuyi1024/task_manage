@@ -542,16 +542,32 @@ body {
   background: var(--accent-light);
 }
 
+/* ── Status Group Icon ──────────────────────── */
+.group-status-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  opacity: .85;
+}
+
+.group-status-icon i,
+.group-status-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  color: var(--g-color, var(--text-muted));
+}
+
 /* ── Status Group Color Indicators ──────────── */
 /* Applied via data-status attribute on .task-group when grouping by status */
 .task-group[data-status="pending"] {
-  --g-color: #f59e0b;
-  --g-bg: #fef9ec;
+  --g-color: #94a3b8;
+  --g-bg: #f8fafc;
 }
 
 .task-group[data-status="not_started"] {
-  --g-color: #94a3b8;
-  --g-bg: #f8fafc;
+  --g-color: #7dd3fc;
+  --g-bg: #edf5fb;
 }
 
 .task-group[data-status="in_progress"] {
@@ -595,19 +611,20 @@ body {
 }
 
 /* Column layout:  task | project | module | status | priority | assign | pm | dates | hours | actions */
+/* All columns use fixed widths so row layout is consistent across screen sizes.
+   Horizontal scrolling handled by .group-body { overflow-x: auto }. */
 :root {
-  /* Task column: fills remaining space, visually capped at 400px via .task-title-text max-width */
-  --col-task: minmax(150px, 1fr);
+  --col-task: 280px;
   --col-project: 200px;
-  --col-module: 200px;
-  --col-status: 150px;
+  --col-module: 180px;
+  --col-status: 140px;
   --col-priority: 100px;
-  --col-assign: 150px;
-  --col-support: 150px;
-  --col-pm: 150px;
-  --col-date: 250px;
-  --col-hours: 100px;
-  --col-actions: 100px;
+  --col-assign: 130px;
+  --col-support: 130px;
+  --col-pm: 130px;
+  --col-date: 240px;
+  --col-hours: 90px;
+  --col-actions: 90px;
   --grid-cols: var(--col-task) var(--col-project) var(--col-module) var(--col-status) var(--col-priority) var(--col-assign) var(--col-support) var(--col-pm) var(--col-date) var(--col-hours) var(--col-actions);
 }
 
@@ -652,12 +669,22 @@ body {
   display: flex;
   align-items: center;
   min-width: 0;
-}
-
-/* Task title: clamp to one line with ellipsis */
-.col-task {
   overflow: hidden;
 }
+
+/* Explicit min/max widths per column — grid-template-columns controls actual width;
+   these constrain inner content and document intent. */
+.col-task    { min-width: 180px; max-width: 280px; }
+.col-project { min-width: 120px; max-width: 200px; }
+.col-module  { min-width: 100px; max-width: 180px; }
+.col-status  { min-width: 100px; max-width: 140px; }
+.col-priority{ min-width:  80px; max-width: 100px; }
+.col-assign  { min-width:  90px; max-width: 130px; }
+.col-support { min-width:  90px; max-width: 130px; }
+.col-pm      { min-width:  90px; max-width: 130px; }
+.col-date    { min-width: 160px; max-width: 240px; }
+.col-hours   { min-width:  70px; max-width:  90px; }
+.col-actions { min-width:  70px; max-width:  90px; }
 
 .task-title-btn {
   background: none;
@@ -683,8 +710,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 400px;
-  /* visual cap; title attr on button shows full text on hover */
+  max-width: 260px;
 }
 
 /* Native tooltip via title attribute handles full text on hover */
@@ -762,11 +788,11 @@ body {
 }
 
 .status-pending {
-  color: #b45309;
+  color: #64748b;
 }
 
 .status-not_started {
-  color: #64748b;
+  color: #38bdf8;
 }
 
 .status-in_progress {
@@ -794,19 +820,16 @@ body {
 }
 
 .priority-high {
-  background: #fee2e2;
   color: #dc2626;
   border-color: #fecaca !important;
 }
 
 .priority-medium {
-  background: #fef3c7;
   color: #b45309;
   border-color: #fde68a !important;
 }
 
 .priority-low {
-  background: #dcfce7;
   color: #16a34a;
   border-color: #bbf7d0 !important;
 }
