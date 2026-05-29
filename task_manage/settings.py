@@ -105,6 +105,10 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_AGE = 7 * 24 * 60 * 60  # 7 天
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_NAME = 'sessionid_task_manage'
+SESSION_COOKIE_PATH = f'{URL_PREFIX}/' if URL_PREFIX else '/'
+CSRF_COOKIE_NAME = 'csrftoken_task_manage'
+CSRF_COOKIE_PATH = f'{URL_PREFIX}/' if URL_PREFIX else '/'
 
 LOGIN_URL = f'{URL_PREFIX}/accounts/login/' if URL_PREFIX else '/accounts/login/'
 LOGIN_REDIRECT_URL = f'{URL_PREFIX}/tasks/' if URL_PREFIX else '/tasks/'
