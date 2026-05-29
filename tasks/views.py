@@ -1,4 +1,5 @@
 import json
+from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -402,7 +403,11 @@ def image_upload(request):
         image=image_file,
         uploaded_by=request.user,
     )
-    return JsonResponse({'url': img.image.url})
+    url = img.image.url
+    url_prefix = getattr(settings, 'URL_PREFIX', '')
+    if url_prefix and url.startswith(url_prefix):
+        url = url[len(url_prefix):]
+    return JsonResponse({'url': url})
 
 
 # ─── Projects ───────────────────────────────────────────────────────────────
